@@ -9,13 +9,13 @@ import Signal
 import Time
 
 -- CONFIG
-framerate = 40
+framerate = 60
 framelength = 1000 / framerate
 
 stringWidth : Int
 stringWidth = 450
 
-numParts = 150
+numParts = 120
 
 partWidth = toFloat (stringWidth // numParts)
 partRadius = partWidth / 2
@@ -80,16 +80,13 @@ zNext cz =
 -- OBJECTS
 type alias Part = { y : Float, vy : Float }
 
-type alias Spring = { k : Float, parts: List Part, t : Time.Time }
-
-initialPart : Part
-initialPart = { y=0, vy=0 }
-
-initialParts : List Part
-initialParts = {y=0, vy=5} :: List.repeat (numParts - 1) initialPart
-
-initialSpring : Spring
-initialSpring = { k=1, parts=initialParts, t=0 }
+type alias Spring =
+  { k : Float -- spring constant. A particle is 1kg, a pixel is 1m. Used for vertical stretching of spring
+  , parts: List Part
+  , leftPulser : Pulser
+  , rightPulser : Maybe Pulser
+  , t : Time.Time
+  }
 
 kE : Part -> Float
 kE {vy} = 0.5 * vy * vy
@@ -113,21 +110,21 @@ inertiaOne ({y, vy} as r) = { r | y = y + vy }
 inertia : Spring -> Spring
 inertia spr = { spr | parts = List.map inertiaOne spr.parts }
 
-type alias Pulse =
+type alias Pulser =
   { start : Float
   , duration : Float
   , hFunction : Float -> Float -- takes time elapsed, returns y
   }
 
--- Get the height of a pulse at a given time
-runP : Pulse -> Float -> Float
-runP pulse t =
-  if t >= pulse.start && t < pulse.start + pulse.duration
-    then pulse.hFunction (t - pulse.start)
+-- Get the height of a pulser at a given time
+runP : Pulser -> Float -> Float
+runP pulser t =
+  if t >= pulser.start && t < pulser.start + pulser.duration
+    then pulser.hFunction (t - pulser.start)
     else 0
 
-mergePulses : Pulse -> Pulse -> Pulse
-mergePulses p0 p1 =
+mergePulsers : Pulser -> Pulser -> Pulser
+mergePulsers p0 p1 =
   let start = min p0.start p1.start
       end = max (p0.start + p0.duration) (p1.start + p1.duration)
       duration = end - start
@@ -143,8 +140,8 @@ mergePulses p0 p1 =
     , hFunction = hFunction
     }
 
-cosPulse : Float -> Float -> Float -> Float -> Pulse
-cosPulse numWavelengths duration amp start =
+cosPulser : Float -> Float -> Float -> Float -> Pulser
+cosPulser numWavelengths duration amp start =
   let hFunction t = amp * cos (t / duration * numWavelengths * 2 * pi + pi / 2)
   in
     { start = start
@@ -155,7 +152,7 @@ cosPulse numWavelengths duration amp start =
 infinity : Float
 infinity = 1 / 0
 
-cosWave : Float -> Float -> Float -> Float -> Pulse
+cosWave : Float -> Float -> Float -> Float -> Pulser
 cosWave amp period duration start =
   let hFunction t = amp * cos (t / period * 2 * pi + pi / 2)
   in
@@ -164,28 +161,61 @@ cosWave amp period duration start =
     , hFunction = hFunction
     }
 
-demo_twoPulsesWideEConserved =
-  let cosPulseA = cosPulse 0.5 2000 20 200
-      cosPulseB = cosPulse 0.5 2000 20 2500
-  in mergePulses cosPulseA cosPulseB
+cosWaveB : Float -> Float -> Float -> Float -> Pulser
+cosWaveB amp period duration start =
+  let hFunction t = amp * cos (t / period * 2 * pi - pi / 2)
+  in
+    { start = start
+    , duration = duration
+    , hFunction = hFunction
+    }
 
-demo_twoPulsesQuickEConserved =
-  let cosPulseA = cosPulse 0.5 600 20 200
-      cosPulseB = cosPulse 0.5 600 20 2500
-  in mergePulses cosPulseA cosPulseB
+demo_onePulserWide = cosPulser 0.5 2000 20 200
+demo_onePulserWideB = cosPulser 0.5 2000 -20 200
 
-demo_fewPulsesReflection = cosWave 10 400 1000 200
+demo_twoPulsersWideEConserved =
+  let cosPulserA = cosPulser 0.5 2000 20 200
+      cosPulserB = cosPulser 0.5 2000 20 2500
+  in mergePulsers cosPulserA cosPulserB
+
+demo_twoPulsersQuickEConserved =
+  let cosPulserA = cosPulser 0.5 600 20 200
+      cosPulserB = cosPulser 0.5 600 20 2500
+  in mergePulsers cosPulserA cosPulserB
+
+demo_fewPulsersReflection = cosWave 10 400 400 200
+
+demo_fewPulsersReflectionB = cosWave 10 400 400 2000
+
+demo_dbl = mergePulsers demo_fewPulsersReflection demo_fewPulsersReflectionB
 
 demo_oneWaveReflection = cosWave 10 400 infinity 200
 
-demo_pulseRight = demo_twoPulsesWideEConserved
+demo_oneWaveReflectionB = cosWaveB 10 400 infinity 200
 
-demo = demo_twoPulsesQuickEConserved
+demo_pulseRight = demo_twoPulsersWideEConserved
+
+demo = demo_twoPulsersQuickEConserved
+
+initialPart : Part
+initialPart = { y=0, vy=0 }
+
+initialParts : List Part
+initialParts = {y=0, vy=5} :: List.repeat (numParts - 1) initialPart
+
+initialSpring : Spring
+initialSpring =
+  { k = 1
+  , parts = initialParts
+  , leftPulser = demo_dbl
+  , rightPulser = Nothing
+  , t = 0
+  }
 
 tension : Spring -> Spring
 tension string =
-  let leftPart = {y = runP demo string.t, vy = 0}
-      rightPart = {y = runP demo string.t, vy = 0}
+  let leftPart = {y = runP string.leftPulser string.t, vy = 0}
+      rightPart = {y = runP string.leftPulser string.t, vy = 0}
 
       leftGetForce : (Part, Part) -> Float
       leftGetForce (f, r) = -f.y
@@ -197,7 +227,7 @@ tension string =
       rightGetForce =
         let rightEndClosed (l, f) = -f.y
             rightEndOpen (l, f) = l.y - f.y
-        in rightEndClosed
+        in rightEndOpen
       
       applyForce : Float -> Part -> Part
       applyForce f {y, vy} = {y = y, vy = vy + f}
@@ -219,7 +249,11 @@ tension string =
                   fs ++ [rightGetForce lf]
         in List.map2 applyForce (forcesZp [] (mkZipper parts)) parts
 
-  in { string | parts = handleTensions (replaceLast rightPart (replaceHead leftPart string.parts)) }
+      newParts =
+        case string.rightPulser of
+          Just pulser -> replaceLast {y = runP pulser string.t, vy = 0} string.parts
+          Nothing -> string.parts
+  in { string | parts = handleTensions (replaceHead leftPart newParts) }
 
 stepSpring : Float -> Spring -> Spring
 stepSpring dt spr =
@@ -284,7 +318,4 @@ main =
 
 -- TODO:
 --  - modules
---  - make generalized Spring-state type, including
---     Pulses active from left and right, and other
---     customizations
 --  - integrate with JS, HTML, incude a UI for customization
