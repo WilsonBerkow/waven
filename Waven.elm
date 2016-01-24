@@ -86,6 +86,7 @@ type alias Spring =
   , leftPulser : Pulser
   , rightPulser : Maybe Pulser
   , t : Time.Time
+  , rightEndClosed : Bool
   }
 
 kE : Part -> Float
@@ -209,6 +210,7 @@ initialSpring =
   , parts = initialParts
   , leftPulser = demo_dbl
   , rightPulser = Nothing
+  , rightEndClosed = False
   , t = 0
   }
 
@@ -225,9 +227,9 @@ tension string =
       
       rightGetForce : (Part, Part) -> Float
       rightGetForce =
-        let rightEndClosed (l, f) = -f.y
-            rightEndOpen (l, f) = l.y - f.y
-        in rightEndOpen
+        let closed (l, f) = -f.y
+            open (l, f) = l.y - f.y
+        in if string.rightEndClosed then closed else open
       
       applyForce : Float -> Part -> Part
       applyForce f {y, vy} = {y = y, vy = vy + f}
