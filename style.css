@@ -1,0 +1,27 @@
+html, body {
+    background-color: beige;
+}
+
+.subtitle {
+    display: block;
+    font-size: 10px;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.content {
+    display: flex;
+}
+
+.pulser-spec {
+    padding: 20px;
+}
+
+.pulser-spec-title {
+    font-weight: bold;
+    font-size: 25px;
+}
+
+.pulser-spec-field {
+    display: block;
+}

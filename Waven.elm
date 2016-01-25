@@ -7,6 +7,14 @@ import List
 import Signal
 import Time
 
+port leftPulserSpecs : Signal (List PulserSpec)
+
+leftPulser = Signal.map pulserFromSpecs leftPulserSpecs
+
+--withLeftPulser r leftPulser = { r | leftPulser = leftPulser }
+--springSignal spring = Signal.map (withLeftPulser r) leftPulser
+--theSpring = springSignal initialSpring
+
 -- CONFIG
 framerate = 50
 framelength = 1000 / framerate
@@ -123,6 +131,37 @@ runP pulser t =
     then pulser.hFunction (t - pulser.start)
     else 0
 
+type alias PulserSpec =
+  { start : Float
+  , duration : Float
+  , amplitude : Float
+  , phaseShift : Float
+  , period : Float
+  , timeZero : Float
+  }
+
+pulserFromSpec : PulserSpec -> Pulser
+pulserFromSpec ps =
+  { start = ps.start + ps.timeZero
+  , duration = ps.duration
+  , hFunction =
+      \t -> ps.amplitude * cos (2 * pi * t / ps.period + pi / 2 + ps.phaseShift)
+  }
+
+zeroPulser : Pulser
+zeroPulser =
+  { start = 0
+  , duration = 0
+  , hFunction = \t -> 0
+  }
+
+pulserFromSpecs : List PulserSpec -> Pulser
+pulserFromSpecs pss =
+  case pss of
+    [] -> zeroPulser
+    [x] -> pulserFromSpec x
+    x::xs -> mergePulsers (pulserFromSpec x) (pulserFromSpecs xs)
+
 mergePulsers : Pulser -> Pulser -> Pulser
 mergePulsers p0 p1 =
   let start = min p0.start p1.start
@@ -238,7 +277,7 @@ tension string =
         let closed (l, f) = -f.y
             open (l, f) = l.y - f.y
         in if string.rightEndClosed then closed else open
-      
+
       applyForce : Float -> Part -> Part
       applyForce f {y, vy} = {y = y, vy = vy + f}
 
@@ -265,9 +304,9 @@ tension string =
           Nothing -> string.parts
   in { string | parts = handleTensions (replaceHead leftPart newParts) }
 
-stepSpring : Float -> Spring -> Spring
-stepSpring dt spr =
-  let spr' = inertia (tension spr)
+stepSpring : (Pulser, Float) -> Spring -> Spring
+stepSpring (lp, dt) spr =
+  let spr' = inertia (tension { spr | leftPulser = lp})
   in { spr' | t = spr.t + dt }
 
 -- VIEW
@@ -303,7 +342,7 @@ viewString spr =
         let x = rightmost - partWidth * toFloat (List.length acc)
         in viewPart x part :: acc
       infos = [viewKE spr, viewPE spr, viewME spr]
-  in 
+  in
   Collage.group (infos ++ (List.foldr renderWithX [] spr.parts))
 
 placeSpring : Collage.Form -> Element.Element
@@ -322,7 +361,7 @@ main =
     (Signal.foldp
       stepSpring
       initialSpring
-      (Time.fps framerate))
+      (Signal.map2 (,) leftPulser (Time.fps framerate)))
 
 
 
