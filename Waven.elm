@@ -1,5 +1,4 @@
 import Debug
-import Html
 import Graphics.Collage as Collage
 import Graphics.Element as Element
 import Text
@@ -28,7 +27,7 @@ iterate f b n =
     0 -> []
     1 -> [b]
     n -> b :: iterate f (f b) (n - 1)
-      
+
 replaceHead new l =
   case l of
     x::xs -> new::xs
