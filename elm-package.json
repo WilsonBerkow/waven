@@ -1,0 +1,14 @@
+{
+    "version": "1.0.0",
+    "summary": "Simple simulator of waves going through a string",
+    "repository": "https://github.com/WilsonBerkow/waven.git",
+    "license": "BSD3",
+    "source-directories": [
+        "."
+    ],
+    "exposed-modules": [],
+    "elm-version": "0.16.0 <= v < 0.17.0",
+    "dependencies": {
+        "elm-lang/core": "3.0.0 <= v < 4.0.0"
+    }
+}
