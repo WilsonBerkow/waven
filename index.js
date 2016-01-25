@@ -85,9 +85,9 @@
         form.append(mkElem("div", {class: "pulser-spec-title"}, ["Pulser"]));
         form.append(mkSpecLine("Start Time (ms)", "start", 100));
         form.append(mkSpecLine("Amplitude", "amplitude", 20));
-        form.append(mkSpecLine("Duration", "duration", 400));
+        form.append(mkSpecLine("Duration", "duration", 1800));
         form.append(mkSpecLine("Phase Shift", "phaseShift", 0));
-        form.append(mkSpecLine("Period", "period", 600));
+        form.append(mkSpecLine("Period", "period", 900));
         form.append(mkElem("button", {}, ["Remove this pulser"], {
             click: function (event) {
                 event.target.parentElement.remove();
