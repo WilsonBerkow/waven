@@ -142,7 +142,7 @@ type alias PulserSpec =
 
 pulserFromSpec : PulserSpec -> Pulser
 pulserFromSpec ps =
-  { start = ps.start + ps.timeZero
+  { start = ps.start + ps.timeZero + 100
   , duration = ps.duration
   , hFunction =
       \t -> ps.amplitude * cos (2 * pi * t / ps.period + pi / 2 + ps.phaseShift)
