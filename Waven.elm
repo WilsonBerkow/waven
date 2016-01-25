@@ -5,16 +5,18 @@ import Text
 import Color
 import List
 import Signal
+import Maybe
 import Time
 
 port leftPulserSpecs : Signal (List PulserSpec)
+port rightPulserSpecs : Signal (Maybe (List PulserSpec))
 port flat : Signal Bool
 
+leftPulser : Signal Pulser
 leftPulser = Signal.map pulserFromSpecs leftPulserSpecs
 
---withLeftPulser r leftPulser = { r | leftPulser = leftPulser }
---springSignal spring = Signal.map (withLeftPulser r) leftPulser
---theSpring = springSignal initialSpring
+rightPulser : Signal (Maybe Pulser)
+rightPulser = Signal.map (Maybe.map pulserFromSpecs) rightPulserSpecs
 
 -- CONFIG
 framerate = 50
@@ -305,12 +307,12 @@ tension string =
           Nothing -> string.parts
   in { string | parts = handleTensions (replaceHead leftPart newParts) }
 
-stepSpring : (Pulser, Bool, Float) -> Spring -> Spring
-stepSpring (lp, flatten, dt) spr =
+stepSpring : (Pulser, Maybe Pulser, Bool, Float) -> Spring -> Spring
+stepSpring (lp, mrp, flatten, dt) spr =
   if flatten
     then { initialSpring | t = spr.t + dt }
     else
-      let spr' = inertia (tension { spr | leftPulser = lp})
+      let spr' = inertia (tension { spr | leftPulser = lp, rightPulser = mrp })
       in { spr' | t = spr.t + dt }
 
 -- VIEW
@@ -365,7 +367,7 @@ main =
     (Signal.foldp
       stepSpring
       initialSpring
-      (Signal.map3 (,,) leftPulser flat (Time.fps framerate)))
+      (Signal.map4 (,,,) leftPulser rightPulser flat (Time.fps framerate)))
 
 
 

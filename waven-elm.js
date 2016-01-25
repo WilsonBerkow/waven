@@ -6439,7 +6439,7 @@ Elm.Main.make = function (_elm) {
                  {ctor: "_Tuple2",_0: _p12._1._1,_1: _p12._1._2});
               }
          default: return _U.crashCase("Main",
-           {start: {line: 72,column: 3},end: {line: 86,column: 53}},
+           {start: {line: 74,column: 3},end: {line: 88,column: 53}},
            _p12)("Tried to get zNext from RightEnd");}
    };
    var LeftEnd = F2(function (a,b) {
@@ -6453,7 +6453,7 @@ Elm.Main.make = function (_elm) {
             _p14._1._1);
          } else {
             return _U.crashCase("Main",
-            {start: {line: 59,column: 3},end: {line: 61,column: 65}},
+            {start: {line: 61,column: 3},end: {line: 63,column: 65}},
             _p14)("Tried to make a zipper from an empty list");
          }
    };
@@ -6569,11 +6569,11 @@ Elm.Main.make = function (_elm) {
                        ,t: 0};
    var stepSpring = F2(function (_p32,spr) {
       var _p33 = _p32;
-      var _p34 = _p33._2;
-      if (_p33._1) return _U.update(initialSpring,{t: spr.t + _p34});
+      var _p34 = _p33._3;
+      if (_p33._2) return _U.update(initialSpring,{t: spr.t + _p34});
       else {
             var spr$ = inertia(tension(_U.update(spr,
-            {leftPulser: _p33._0})));
+            {leftPulser: _p33._0,rightPulser: _p33._1})));
             return _U.update(spr$,{t: spr.t + _p34});
          }
    });
@@ -6607,6 +6607,29 @@ Elm.Main.make = function (_elm) {
       return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",
       v);
    });
+   var rightPulserSpecs = Elm.Native.Port.make(_elm).inboundSignal("rightPulserSpecs",
+   "Maybe.Maybe\n    (List Main.PulserSpec)",
+   function (v) {
+      return v === null ? Elm.Maybe.make(_elm).Nothing : Elm.Maybe.make(_elm).Just(typeof v === "object" && v instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.map(function (v) {
+         return typeof v === "object" && "start" in v && "duration" in v && "amplitude" in v && "phaseShift" in v && "period" in v && "timeZero" in v ? {_: {}
+                                                                                                                                                        ,start: typeof v.start === "number" ? v.start : _U.badPort("a number",
+                                                                                                                                                        v.start)
+                                                                                                                                                        ,duration: typeof v.duration === "number" ? v.duration : _U.badPort("a number",
+                                                                                                                                                        v.duration)
+                                                                                                                                                        ,amplitude: typeof v.amplitude === "number" ? v.amplitude : _U.badPort("a number",
+                                                                                                                                                        v.amplitude)
+                                                                                                                                                        ,phaseShift: typeof v.phaseShift === "number" ? v.phaseShift : _U.badPort("a number",
+                                                                                                                                                        v.phaseShift)
+                                                                                                                                                        ,period: typeof v.period === "number" ? v.period : _U.badPort("a number",
+                                                                                                                                                        v.period)
+                                                                                                                                                        ,timeZero: typeof v.timeZero === "number" ? v.timeZero : _U.badPort("a number",
+                                                                                                                                                        v.timeZero)} : _U.badPort("an object with fields `start`, `duration`, `amplitude`, `phaseShift`, `period`, `timeZero`",
+         v);
+      })) : _U.badPort("an array",v));
+   });
+   var rightPulser = A2($Signal.map,
+   $Maybe.map(pulserFromSpecs),
+   rightPulserSpecs);
    var leftPulserSpecs = Elm.Native.Port.make(_elm).inboundSignal("leftPulserSpecs",
    "List Main.PulserSpec",
    function (v) {
@@ -6637,15 +6660,17 @@ Elm.Main.make = function (_elm) {
    A3($Signal.foldp,
    stepSpring,
    initialSpring,
-   A4($Signal.map3,
-   F3(function (v0,v1,v2) {
-      return {ctor: "_Tuple3",_0: v0,_1: v1,_2: v2};
+   A5($Signal.map4,
+   F4(function (v0,v1,v2,v3) {
+      return {ctor: "_Tuple4",_0: v0,_1: v1,_2: v2,_3: v3};
    }),
    leftPulser,
+   rightPulser,
    flat,
    $Time.fps(framerate))));
    return _elm.Main.values = {_op: _op
                              ,leftPulser: leftPulser
+                             ,rightPulser: rightPulser
                              ,framerate: framerate
                              ,framelength: framelength
                              ,stringWidth: stringWidth

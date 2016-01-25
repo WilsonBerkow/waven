@@ -1,4 +1,4 @@
-(function () {
+(function again() {
     "use strict";
     var waven = document.getElementById('waven');
 
@@ -15,12 +15,14 @@
 
     var initPorts = {
         leftPulserSpecs: [mkZeroPulser(Date.now())],
+        rightPulserSpecs: null,
         flat: false
     };
 
     var wavenApp = Elm.embed(Elm.Main, waven, initPorts);
 
     var leftPulserForms = document.getElementById('left-pulser-specs');
+    var rightPulserForms = document.getElementById('right-pulser-specs');
     var mkElem = (function () {
         var proto = {
             toString: function () {
@@ -101,17 +103,22 @@
 
     var newLeftPulser = document.getElementById('new-left-pulser');
     var leftPulserConfirm = document.getElementById('use-pulsers');
-    //var newRightPulser = document.getElementById('new-right-pulser');
+    var newRightPulser = document.getElementById('new-right-pulser');
 
     newLeftPulser.addEventListener('click', function (event) {
         var specForm = mkPulserForm();
         leftPulserForms.appendChild(specForm.make());
     });
-    leftPulserConfirm.addEventListener('click', function () {
-        var relativeStartTime = performance.now();
+
+    newRightPulser.addEventListener('click', function (event) {
+        var specForm = mkPulserForm();
+        rightPulserForms.appendChild(specForm.make());
+    });
+
+    var getPulserSpecs = function (specsDom, relativeStartTime) {
         var pulsers = [];
-        var specs = [].slice.apply(leftPulserForms.children);
-        specs.forEach(function (spec) {
+        var specsElems = [].slice.apply(specsDom.children);
+        specsElems.forEach(function (spec) {
             var fields = [].slice.apply(spec.children);
             var specData = {};
             fields.forEach(function (fieldLine) {
@@ -127,13 +134,23 @@
             pulsers.push(specData);
             console.log("Spec: ", specData);
         });
-        wavenApp.ports.leftPulserSpecs.send(pulsers);
+        return pulsers;
+    };
+
+    leftPulserConfirm.addEventListener('click', function () {
+        var now = performance.now();
+        var left = getPulserSpecs(leftPulserForms, now);
+        wavenApp.ports.leftPulserSpecs.send(left);
+        var right = getPulserSpecs(rightPulserForms, now);
+        wavenApp.ports.rightPulserSpecs.send(right);
     });
 
     var resetBtn = document.getElementById('reset-medium');
     resetBtn.addEventListener('click', function () {
         // TODO: Less nasty solution
         wavenApp.ports.flat.send(true);
+        wavenApp.ports.leftPulserSpecs.send([]);
+        wavenApp.ports.rightPulserSpecs.send(null);
         setTimeout(function () {
             wavenApp.ports.flat.send(false);
         }, 100);
