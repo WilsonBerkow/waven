@@ -9,7 +9,7 @@ import Signal
 import Time
 
 -- CONFIG
-framerate = 60
+framerate = 50
 framelength = 1000 / framerate
 
 stringWidth : Int
@@ -150,6 +150,15 @@ cosPulser numWavelengths duration amp start =
     , hFunction = hFunction
     }
 
+cosPulserB : Float -> Float -> Float -> Float -> Pulser
+cosPulserB numWavelengths duration amp start =
+  let hFunction t = amp * cos (t / duration * numWavelengths * 2 * pi - pi / 2)
+  in
+    { start = start
+    , duration = duration
+    , hFunction = hFunction
+    }
+
 infinity : Float
 infinity = 1 / 0
 
@@ -175,18 +184,18 @@ demo_onePulserWide = cosPulser 0.5 2000 20 200
 demo_onePulserWideB = cosPulser 0.5 2000 -20 200
 
 demo_twoPulsersWideEConserved =
-  let cosPulserA = cosPulser 0.5 2000 20 200
-      cosPulserB = cosPulser 0.5 2000 20 2500
-  in mergePulsers cosPulserA cosPulserB
+  let a = cosPulser 0.5 2000 20 200
+      b = cosPulser 0.5 2000 20 2500
+  in mergePulsers a b
 
 demo_twoPulsersQuickEConserved =
-  let cosPulserA = cosPulser 0.5 600 20 200
-      cosPulserB = cosPulser 0.5 600 20 2500
-  in mergePulsers cosPulserA cosPulserB
+  let a = cosPulser 0.5 600 20 200
+      b = cosPulser 0.5 600 20 2500
+  in mergePulsers a b
 
 demo_fewPulsersReflection = cosWave 10 400 400 200
 
-demo_fewPulsersReflectionB = cosWave 10 400 400 2000
+demo_fewPulsersReflectionB = cosWave -10 400 400 2000
 
 demo_dbl = mergePulsers demo_fewPulsersReflection demo_fewPulsersReflectionB
 
@@ -210,7 +219,7 @@ initialSpring =
   , parts = initialParts
   , leftPulser = demo_dbl
   , rightPulser = Nothing
-  , rightEndClosed = False
+  , rightEndClosed = True
   , t = 0
   }
 
