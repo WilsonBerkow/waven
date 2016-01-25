@@ -6269,7 +6269,7 @@ Elm.Main.make = function (_elm) {
       return {start: ps.start + ps.timeZero + 100
              ,duration: ps.duration
              ,hFunction: function (t) {
-                return ps.amplitude * $Basics.cos(2 * $Basics.pi * t / ps.period + $Basics.pi / 2 + ps.phaseShift);
+                return ps.amplitude * $Basics.cos(2 * $Basics.pi * t / ps.period - $Basics.pi / 2 + ps.phaseShift);
              }};
    };
    var PulserSpec = F6(function (a,b,c,d,e,f) {
