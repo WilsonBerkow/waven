@@ -83,7 +83,9 @@
 
     var mkPulserForm = function () {
         var form = mkElem("div", {class: "pulser-spec"});
-        form.append(mkElem("div", {class: "pulser-spec-title"}, ["Pulser"]));
+        form.append(
+            mkElem("div", {class: "pulser-spec-title"}, ["Harmonic Pulser"])
+        );
         form.append(mkSpecLine("Start Time (ms)", "start", 100));
         form.append(mkSpecLine("Amplitude", "amplitude", 20));
         form.append(mkSpecLine("Duration", "duration", 1800));
