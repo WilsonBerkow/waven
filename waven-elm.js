@@ -6439,7 +6439,7 @@ Elm.Main.make = function (_elm) {
                  {ctor: "_Tuple2",_0: _p12._1._1,_1: _p12._1._2});
               }
          default: return _U.crashCase("Main",
-           {start: {line: 71,column: 3},end: {line: 85,column: 53}},
+           {start: {line: 72,column: 3},end: {line: 86,column: 53}},
            _p12)("Tried to get zNext from RightEnd");}
    };
    var LeftEnd = F2(function (a,b) {
@@ -6453,7 +6453,7 @@ Elm.Main.make = function (_elm) {
             _p14._1._1);
          } else {
             return _U.crashCase("Main",
-            {start: {line: 58,column: 3},end: {line: 60,column: 65}},
+            {start: {line: 59,column: 3},end: {line: 61,column: 65}},
             _p14)("Tried to make a zipper from an empty list");
          }
    };
@@ -6548,20 +6548,14 @@ Elm.Main.make = function (_elm) {
       return _U.update(string,
       {parts: handleTensions(A2(replaceHead,leftPart,newParts))});
    };
-   var stepSpring = F2(function (_p31,spr) {
-      var _p32 = _p31;
-      var spr$ = inertia(tension(_U.update(spr,
-      {leftPulser: _p32._0})));
-      return _U.update(spr$,{t: spr.t + _p32._1});
-   });
    var iterate = F3(function (f,b,n) {
-      var _p33 = n;
-      switch (_p33)
+      var _p31 = n;
+      switch (_p31)
       {case 0: return _U.list([]);
          case 1: return _U.list([b]);
          default: return A2($List._op["::"],
            b,
-           A3(iterate,f,f(b),_p33 - 1));}
+           A3(iterate,f,f(b),_p31 - 1));}
    });
    var numParts = 120;
    var initialParts = A2($List._op["::"],
@@ -6573,13 +6567,23 @@ Elm.Main.make = function (_elm) {
                        ,rightPulser: $Maybe.Nothing
                        ,rightEndClosed: true
                        ,t: 0};
+   var stepSpring = F2(function (_p32,spr) {
+      var _p33 = _p32;
+      var _p34 = _p33._2;
+      if (_p33._1) return _U.update(initialSpring,{t: spr.t + _p34});
+      else {
+            var spr$ = inertia(tension(_U.update(spr,
+            {leftPulser: _p33._0})));
+            return _U.update(spr$,{t: spr.t + _p34});
+         }
+   });
    var stringWidth = 450;
    var partWidth = $Basics.toFloat(stringWidth / numParts | 0);
    var partRadius = partWidth / 2;
-   var viewPart = F2(function (x,_p34) {
-      var _p35 = _p34;
+   var viewPart = F2(function (x,_p35) {
+      var _p36 = _p35;
       return A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: x,_1: _p35.y},
+      {ctor: "_Tuple2",_0: x,_1: _p36.y},
       A2($Graphics$Collage.filled,
       $Color.black,
       $Graphics$Collage.circle(partRadius)));
@@ -6597,6 +6601,12 @@ Elm.Main.make = function (_elm) {
    };
    var framerate = 50;
    var framelength = 1000 / framerate;
+   var flat = Elm.Native.Port.make(_elm).inboundSignal("flat",
+   "Bool",
+   function (v) {
+      return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",
+      v);
+   });
    var leftPulserSpecs = Elm.Native.Port.make(_elm).inboundSignal("leftPulserSpecs",
    "List Main.PulserSpec",
    function (v) {
@@ -6621,17 +6631,18 @@ Elm.Main.make = function (_elm) {
    pulserFromSpecs,
    leftPulserSpecs);
    var main = A2($Signal.map,
-   function (_p36) {
-      return placeSpring(viewString(_p36));
+   function (_p37) {
+      return placeSpring(viewString(_p37));
    },
    A3($Signal.foldp,
    stepSpring,
    initialSpring,
-   A3($Signal.map2,
-   F2(function (v0,v1) {
-      return {ctor: "_Tuple2",_0: v0,_1: v1};
+   A4($Signal.map3,
+   F3(function (v0,v1,v2) {
+      return {ctor: "_Tuple3",_0: v0,_1: v1,_2: v2};
    }),
    leftPulser,
+   flat,
    $Time.fps(framerate))));
    return _elm.Main.values = {_op: _op
                              ,leftPulser: leftPulser

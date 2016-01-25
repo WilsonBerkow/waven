@@ -8,6 +8,7 @@ import Signal
 import Time
 
 port leftPulserSpecs : Signal (List PulserSpec)
+port flat : Signal Bool
 
 leftPulser = Signal.map pulserFromSpecs leftPulserSpecs
 
@@ -304,10 +305,13 @@ tension string =
           Nothing -> string.parts
   in { string | parts = handleTensions (replaceHead leftPart newParts) }
 
-stepSpring : (Pulser, Float) -> Spring -> Spring
-stepSpring (lp, dt) spr =
-  let spr' = inertia (tension { spr | leftPulser = lp})
-  in { spr' | t = spr.t + dt }
+stepSpring : (Pulser, Bool, Float) -> Spring -> Spring
+stepSpring (lp, flatten, dt) spr =
+  if flatten
+    then { initialSpring | t = spr.t + dt }
+    else
+      let spr' = inertia (tension { spr | leftPulser = lp})
+      in { spr' | t = spr.t + dt }
 
 -- VIEW
 
@@ -361,7 +365,7 @@ main =
     (Signal.foldp
       stepSpring
       initialSpring
-      (Signal.map2 (,) leftPulser (Time.fps framerate)))
+      (Signal.map3 (,,) leftPulser flat (Time.fps framerate)))
 
 
 

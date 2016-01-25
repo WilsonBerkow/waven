@@ -14,7 +14,8 @@
     };
 
     var initPorts = {
-        leftPulserSpecs: [mkZeroPulser(Date.now())]
+        leftPulserSpecs: [mkZeroPulser(Date.now())],
+        flat: false
     };
 
     var wavenApp = Elm.embed(Elm.Main, waven, initPorts);
@@ -125,5 +126,14 @@
             console.log("Spec: ", specData);
         });
         wavenApp.ports.leftPulserSpecs.send(pulsers);
+    });
+
+    var resetBtn = document.getElementById('reset-medium');
+    resetBtn.addEventListener('click', function () {
+        // TODO: Less nasty solution
+        wavenApp.ports.flat.send(true);
+        setTimeout(function () {
+            wavenApp.ports.flat.send(false);
+        }, 100);
     });
 }());
