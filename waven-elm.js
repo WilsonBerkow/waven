@@ -6027,6 +6027,141 @@ Elm.Signal.make = function (_elm) {
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
 };
+Elm.ContextZipper = Elm.ContextZipper || {};
+Elm.ContextZipper.make = function (_elm) {
+   "use strict";
+   _elm.ContextZipper = _elm.ContextZipper || {};
+   if (_elm.ContextZipper.values) return _elm.ContextZipper.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var toList = function (cz) {
+      var _p0 = cz;
+      switch (_p0.ctor)
+      {case "LeftEnd": return A2($List._op["::"],
+           _p0._0._0,
+           A2($List._op["::"],_p0._0._1,_p0._1));
+         case "MidElem": return A2($Basics._op["++"],
+           _p0._0,
+           A2($List._op["::"],
+           _p0._1._0,
+           A2($List._op["::"],
+           _p0._1._1,
+           A2($List._op["::"],_p0._1._2,_p0._2))));
+         default: return A2($Basics._op["++"],
+           _p0._0,
+           _U.list([_p0._1._0,_p0._1._1]));}
+   };
+   var RightEnd = F2(function (a,b) {
+      return {ctor: "RightEnd",_0: a,_1: b};
+   });
+   var MidElem = F3(function (a,b,c) {
+      return {ctor: "MidElem",_0: a,_1: b,_2: c};
+   });
+   var next = function (cz) {
+      var _p1 = cz;
+      switch (_p1.ctor)
+      {case "LeftEnd": if (_p1._1.ctor === "::") {
+                 return A3(MidElem,
+                 _U.list([]),
+                 {ctor: "_Tuple3",_0: _p1._0._0,_1: _p1._0._1,_2: _p1._1._0},
+                 _p1._1._1);
+              } else {
+                 return A2(RightEnd,
+                 _U.list([]),
+                 {ctor: "_Tuple2",_0: _p1._0._0,_1: _p1._0._1});
+              }
+         case "MidElem": if (_p1._2.ctor === "::") {
+                 return A3(MidElem,
+                 A2($Basics._op["++"],_p1._0,_U.list([_p1._1._0])),
+                 {ctor: "_Tuple3",_0: _p1._1._1,_1: _p1._1._2,_2: _p1._2._0},
+                 _p1._2._1);
+              } else {
+                 return A2(RightEnd,
+                 A2($Basics._op["++"],_p1._0,_U.list([_p1._1._0])),
+                 {ctor: "_Tuple2",_0: _p1._1._1,_1: _p1._1._2});
+              }
+         default: return _U.crashCase("ContextZipper",
+           {start: {line: 23,column: 3},end: {line: 37,column: 53}},
+           _p1)("Tried to get zNext from RightEnd");}
+   };
+   var LeftEnd = F2(function (a,b) {
+      return {ctor: "LeftEnd",_0: a,_1: b};
+   });
+   var mk = function (l) {
+      var _p3 = l;
+      if (_p3.ctor === "::" && _p3._1.ctor === "::") {
+            return A2(LeftEnd,
+            {ctor: "_Tuple2",_0: _p3._0,_1: _p3._1._0},
+            _p3._1._1);
+         } else {
+            return _U.crashCase("ContextZipper",
+            {start: {line: 10,column: 3},end: {line: 12,column: 65}},
+            _p3)("Tried to make a zipper from an empty list");
+         }
+   };
+   return _elm.ContextZipper.values = {_op: _op
+                                      ,LeftEnd: LeftEnd
+                                      ,MidElem: MidElem
+                                      ,RightEnd: RightEnd
+                                      ,mk: mk
+                                      ,toList: toList
+                                      ,next: next};
+};
+Elm.ListUtil = Elm.ListUtil || {};
+Elm.ListUtil.make = function (_elm) {
+   "use strict";
+   _elm.ListUtil = _elm.ListUtil || {};
+   if (_elm.ListUtil.values) return _elm.ListUtil.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var replaceLast = F2(function ($new,l) {
+      var _p0 = l;
+      if (_p0.ctor === "[]") {
+            return _U.list([]);
+         } else {
+            if (_p0._1.ctor === "[]") {
+                  return _U.list([$new]);
+               } else {
+                  return A2($List._op["::"],
+                  _p0._0,
+                  A2(replaceLast,$new,_p0._1));
+               }
+         }
+   });
+   var replaceHead = F2(function ($new,l) {
+      var _p1 = l;
+      if (_p1.ctor === "::") {
+            return A2($List._op["::"],$new,_p1._1);
+         } else {
+            return _U.list([]);
+         }
+   });
+   var iterate = F3(function (f,b,n) {
+      var _p2 = n;
+      switch (_p2)
+      {case 0: return _U.list([]);
+         case 1: return _U.list([b]);
+         default: return A2($List._op["::"],
+           b,
+           A3(iterate,f,f(b),_p2 - 1));}
+   });
+   return _elm.ListUtil.values = {_op: _op
+                                 ,iterate: iterate
+                                 ,replaceHead: replaceHead
+                                 ,replaceLast: replaceLast};
+};
 Elm.Native.Time = {};
 
 Elm.Native.Time.make = function(localRuntime)
@@ -6200,10 +6335,12 @@ Elm.Main.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
+   $ContextZipper = Elm.ContextZipper.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
+   $ListUtil = Elm.ListUtil.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -6328,24 +6465,95 @@ Elm.Main.make = function (_elm) {
    var demo_dbl = A2(mergePulsers,
    demo_fewPulsersReflection,
    demo_fewPulsersReflectionB);
+   var tension = function (string) {
+      var newParts = function () {
+         var _p2 = string.rightPulser;
+         if (_p2.ctor === "Just") {
+               return A2($ListUtil.replaceLast,
+               {y: A2(runP,_p2._0,string.t),vy: 0},
+               string.parts);
+            } else {
+               return string.parts;
+            }
+      }();
+      var applyForce = F2(function (f,_p3) {
+         var _p4 = _p3;
+         return {y: _p4.y,vy: _p4.vy + f};
+      });
+      var rightGetForce = function () {
+         var open = function (_p5) {
+            var _p6 = _p5;
+            return _p6._0.y - _p6._1.y;
+         };
+         var closed = function (_p7) {
+            var _p8 = _p7;
+            return 0 - _p8._1.y;
+         };
+         return string.rightEndClosed ? closed : open;
+      }();
+      var midGetForce = function (_p9) {
+         var _p10 = _p9;
+         var _p11 = _p10._1;
+         return string.k * (_p10._0.y - _p11.y) + string.k * (_p10._2.y - _p11.y);
+      };
+      var leftGetForce = function (_p12) {
+         var _p13 = _p12;
+         return 0 - _p13._0.y;
+      };
+      var handleTensions = function (parts) {
+         var forcesZp = F2(function (fs,pz) {
+            forcesZp: while (true) {
+               var _p14 = pz;
+               switch (_p14.ctor)
+               {case "LeftEnd": var _v8 = A2($Basics._op["++"],
+                    fs,
+                    _U.list([leftGetForce(_p14._0)])),
+                    _v9 = $ContextZipper.next(_p14);
+                    fs = _v8;
+                    pz = _v9;
+                    continue forcesZp;
+                  case "MidElem": var _v10 = A2($Basics._op["++"],
+                    fs,
+                    _U.list([midGetForce(_p14._1)])),
+                    _v11 = $ContextZipper.next(_p14);
+                    fs = _v10;
+                    pz = _v11;
+                    continue forcesZp;
+                  default: return A2($Basics._op["++"],
+                    fs,
+                    _U.list([rightGetForce(_p14._1)]));}
+            }
+         });
+         return A3($List.map2,
+         applyForce,
+         A2(forcesZp,_U.list([]),$ContextZipper.mk(parts)),
+         parts);
+      };
+      var rightPart = {y: A2(runP,string.leftPulser,string.t),vy: 0};
+      var leftPart = {y: A2(runP,string.leftPulser,string.t),vy: 0};
+      return _U.update(string,
+      {parts: handleTensions(A2($ListUtil.replaceHead,
+      leftPart,
+      newParts))});
+   };
    var Pulser = F3(function (a,b,c) {
       return {start: a,duration: b,hFunction: c};
    });
-   var inertiaOne = function (_p2) {
-      var _p3 = _p2;
-      return _U.update(_p3,{y: _p3.y + _p3.vy});
+   var inertiaOne = function (_p15) {
+      var _p16 = _p15;
+      return _U.update(_p16,{y: _p16.y + _p16.vy});
    };
    var inertia = function (spr) {
       return _U.update(spr,
       {parts: A2($List.map,inertiaOne,spr.parts)});
    };
    var totalPE = function (spr) {
-      var _p4 = spr.parts;
-      if (_p4.ctor === "::" && _p4._1.ctor === "::") {
-            var _p5 = _p4._1._0;
-            return 0.5 * Math.pow(_p5.y - _p4._0.y,
+      var _p17 = spr.parts;
+      if (_p17.ctor === "::" && _p17._1.ctor === "::") {
+            var _p18 = _p17._1._0;
+            return 0.5 * Math.pow(_p18.y - _p17._0.y,
             2) + totalPE(_U.update(spr,
-            {parts: A2($List._op["::"],_p5,_p4._1._1)}));
+            {parts: A2($List._op["::"],_p18,_p17._1._1)}));
          } else {
             return 0;
          }
@@ -6358,14 +6566,14 @@ Elm.Main.make = function (_elm) {
       {ctor: "_Tuple2",_0: 100,_1: 120},
       peShown);
    };
-   var kE = function (_p6) {
-      var _p7 = _p6;
-      var _p8 = _p7.vy;
-      return 0.5 * _p8 * _p8;
+   var kE = function (_p19) {
+      var _p20 = _p19;
+      var _p21 = _p20.vy;
+      return 0.5 * _p21 * _p21;
    };
-   var totalKE = function (_p9) {
-      var _p10 = _p9;
-      return $List.sum(A2($List.map,kE,_p10.parts));
+   var totalKE = function (_p22) {
+      var _p23 = _p22;
+      return $List.sum(A2($List.map,kE,_p23.parts));
    };
    var viewKE = function (spring) {
       var ke = $Basics.round(totalKE(spring));
@@ -6392,171 +6600,6 @@ Elm.Main.make = function (_elm) {
              ,rightEndClosed: f};
    });
    var Part = F2(function (a,b) {    return {y: a,vy: b};});
-   var zToList = function (cz) {
-      var _p11 = cz;
-      switch (_p11.ctor)
-      {case "LeftEnd": return A2($List._op["::"],
-           _p11._0._0,
-           A2($List._op["::"],_p11._0._1,_p11._1));
-         case "MidElem": return A2($Basics._op["++"],
-           _p11._0,
-           A2($List._op["::"],
-           _p11._1._0,
-           A2($List._op["::"],
-           _p11._1._1,
-           A2($List._op["::"],_p11._1._2,_p11._2))));
-         default: return A2($Basics._op["++"],
-           _p11._0,
-           _U.list([_p11._1._0,_p11._1._1]));}
-   };
-   var RightEnd = F2(function (a,b) {
-      return {ctor: "RightEnd",_0: a,_1: b};
-   });
-   var MidElem = F3(function (a,b,c) {
-      return {ctor: "MidElem",_0: a,_1: b,_2: c};
-   });
-   var zNext = function (cz) {
-      var _p12 = cz;
-      switch (_p12.ctor)
-      {case "LeftEnd": if (_p12._1.ctor === "::") {
-                 return A3(MidElem,
-                 _U.list([]),
-                 {ctor: "_Tuple3",_0: _p12._0._0,_1: _p12._0._1,_2: _p12._1._0},
-                 _p12._1._1);
-              } else {
-                 return A2(RightEnd,
-                 _U.list([]),
-                 {ctor: "_Tuple2",_0: _p12._0._0,_1: _p12._0._1});
-              }
-         case "MidElem": if (_p12._2.ctor === "::") {
-                 return A3(MidElem,
-                 A2($Basics._op["++"],_p12._0,_U.list([_p12._1._0])),
-                 {ctor: "_Tuple3",_0: _p12._1._1,_1: _p12._1._2,_2: _p12._2._0},
-                 _p12._2._1);
-              } else {
-                 return A2(RightEnd,
-                 A2($Basics._op["++"],_p12._0,_U.list([_p12._1._0])),
-                 {ctor: "_Tuple2",_0: _p12._1._1,_1: _p12._1._2});
-              }
-         default: return _U.crashCase("Main",
-           {start: {line: 74,column: 3},end: {line: 88,column: 53}},
-           _p12)("Tried to get zNext from RightEnd");}
-   };
-   var LeftEnd = F2(function (a,b) {
-      return {ctor: "LeftEnd",_0: a,_1: b};
-   });
-   var mkZipper = function (l) {
-      var _p14 = l;
-      if (_p14.ctor === "::" && _p14._1.ctor === "::") {
-            return A2(LeftEnd,
-            {ctor: "_Tuple2",_0: _p14._0,_1: _p14._1._0},
-            _p14._1._1);
-         } else {
-            return _U.crashCase("Main",
-            {start: {line: 61,column: 3},end: {line: 63,column: 65}},
-            _p14)("Tried to make a zipper from an empty list");
-         }
-   };
-   var replaceLast = F2(function ($new,l) {
-      var _p16 = l;
-      if (_p16.ctor === "[]") {
-            return _U.list([]);
-         } else {
-            if (_p16._1.ctor === "[]") {
-                  return _U.list([$new]);
-               } else {
-                  return A2($List._op["::"],
-                  _p16._0,
-                  A2(replaceLast,$new,_p16._1));
-               }
-         }
-   });
-   var replaceHead = F2(function ($new,l) {
-      var _p17 = l;
-      if (_p17.ctor === "::") {
-            return A2($List._op["::"],$new,_p17._1);
-         } else {
-            return _U.list([]);
-         }
-   });
-   var tension = function (string) {
-      var newParts = function () {
-         var _p18 = string.rightPulser;
-         if (_p18.ctor === "Just") {
-               return A2(replaceLast,
-               {y: A2(runP,_p18._0,string.t),vy: 0},
-               string.parts);
-            } else {
-               return string.parts;
-            }
-      }();
-      var applyForce = F2(function (f,_p19) {
-         var _p20 = _p19;
-         return {y: _p20.y,vy: _p20.vy + f};
-      });
-      var rightGetForce = function () {
-         var open = function (_p21) {
-            var _p22 = _p21;
-            return _p22._0.y - _p22._1.y;
-         };
-         var closed = function (_p23) {
-            var _p24 = _p23;
-            return 0 - _p24._1.y;
-         };
-         return string.rightEndClosed ? closed : open;
-      }();
-      var midGetForce = function (_p25) {
-         var _p26 = _p25;
-         var _p27 = _p26._1;
-         return string.k * (_p26._0.y - _p27.y) + string.k * (_p26._2.y - _p27.y);
-      };
-      var leftGetForce = function (_p28) {
-         var _p29 = _p28;
-         return 0 - _p29._0.y;
-      };
-      var handleTensions = function (parts) {
-         var forcesZp = F2(function (fs,pz) {
-            forcesZp: while (true) {
-               var _p30 = pz;
-               switch (_p30.ctor)
-               {case "LeftEnd": var _v17 = A2($Basics._op["++"],
-                    fs,
-                    _U.list([leftGetForce(_p30._0)])),
-                    _v18 = zNext(_p30);
-                    fs = _v17;
-                    pz = _v18;
-                    continue forcesZp;
-                  case "MidElem": var _v19 = A2($Basics._op["++"],
-                    fs,
-                    _U.list([midGetForce(_p30._1)])),
-                    _v20 = zNext(_p30);
-                    fs = _v19;
-                    pz = _v20;
-                    continue forcesZp;
-                  default: return A2($Basics._op["++"],
-                    fs,
-                    _U.list([rightGetForce(_p30._1)]));}
-            }
-         });
-         return A3($List.map2,
-         applyForce,
-         A2(forcesZp,_U.list([]),mkZipper(parts)),
-         parts);
-      };
-      var rightPart = {y: A2(runP,string.leftPulser,string.t),vy: 0};
-      var leftPart = {y: A2(runP,string.leftPulser,string.t),vy: 0};
-      return _U.update(string,
-      {parts: handleTensions(A2(replaceHead,leftPart,newParts))});
-   };
-   var iterate = F3(function (f,b,n) {
-      var _p31 = n;
-      switch (_p31)
-      {case 0: return _U.list([]);
-         case 1: return _U.list([b]);
-         default: return A2($List._op["::"],
-           b,
-           A3(iterate,f,f(b),_p31 - 1));}
-   });
    var numParts = 120;
    var initialParts = A2($List._op["::"],
    {y: 0,vy: 5},
@@ -6567,23 +6610,23 @@ Elm.Main.make = function (_elm) {
                        ,rightPulser: $Maybe.Nothing
                        ,rightEndClosed: true
                        ,t: 0};
-   var stepSpring = F2(function (_p32,spr) {
-      var _p33 = _p32;
-      var _p34 = _p33._3;
-      if (_p33._2) return _U.update(initialSpring,{t: spr.t + _p34});
+   var stepSpring = F2(function (_p24,spr) {
+      var _p25 = _p24;
+      var _p26 = _p25._3;
+      if (_p25._2) return _U.update(initialSpring,{t: spr.t + _p26});
       else {
             var spr$ = inertia(tension(_U.update(spr,
-            {leftPulser: _p33._0,rightPulser: _p33._1})));
-            return _U.update(spr$,{t: spr.t + _p34});
+            {leftPulser: _p25._0,rightPulser: _p25._1})));
+            return _U.update(spr$,{t: spr.t + _p26});
          }
    });
    var stringWidth = 450;
    var partWidth = $Basics.toFloat(stringWidth / numParts | 0);
    var partRadius = partWidth / 2;
-   var viewPart = F2(function (x,_p35) {
-      var _p36 = _p35;
+   var viewPart = F2(function (x,_p27) {
+      var _p28 = _p27;
       return A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: x,_1: _p36.y},
+      {ctor: "_Tuple2",_0: x,_1: _p28.y},
       A2($Graphics$Collage.filled,
       $Color.black,
       $Graphics$Collage.circle(partRadius)));
@@ -6654,8 +6697,8 @@ Elm.Main.make = function (_elm) {
    pulserFromSpecs,
    leftPulserSpecs);
    var main = A2($Signal.map,
-   function (_p37) {
-      return placeSpring(viewString(_p37));
+   function (_p29) {
+      return placeSpring(viewString(_p29));
    },
    A3($Signal.foldp,
    stepSpring,
@@ -6677,15 +6720,6 @@ Elm.Main.make = function (_elm) {
                              ,numParts: numParts
                              ,partWidth: partWidth
                              ,partRadius: partRadius
-                             ,iterate: iterate
-                             ,replaceHead: replaceHead
-                             ,replaceLast: replaceLast
-                             ,LeftEnd: LeftEnd
-                             ,MidElem: MidElem
-                             ,RightEnd: RightEnd
-                             ,mkZipper: mkZipper
-                             ,zToList: zToList
-                             ,zNext: zNext
                              ,Part: Part
                              ,Spring: Spring
                              ,kE: kE

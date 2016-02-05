@@ -8,6 +8,10 @@ import Signal
 import Maybe
 import Time
 
+import ListUtil
+import ContextZipper
+import ContextZipper exposing (ContextZipper(LeftEnd, MidElem, RightEnd))
+
 port leftPulserSpecs : Signal (List PulserSpec)
 port rightPulserSpecs : Signal (Maybe (List PulserSpec))
 port flat : Signal Bool
@@ -29,63 +33,6 @@ numParts = 120
 
 partWidth = toFloat (stringWidth // numParts)
 partRadius = partWidth / 2
-
-
--- UTIL
-iterate : (a -> a) -> a -> Int -> List a
-iterate f b n =
-  case n of
-    0 -> []
-    1 -> [b]
-    n -> b :: iterate f (f b) (n - 1)
-
-replaceHead new l =
-  case l of
-    x::xs -> new::xs
-    [] -> []
-
-replaceLast new l =
-  case l of
-    [] -> []
-    [_] -> [new]
-    x::xs -> x :: replaceLast new xs
-
--- ZIPPER
-type ContextZipper e =
-    LeftEnd (e, e) (List e) -- (focus, rightside), rest
-  | MidElem (List e) (e, e, e) (List e) -- many, (leftside, focus, rightside), rest
-  | RightEnd (List e) (e, e) -- many, (leftside, focus)
-
-mkZipper : List x -> ContextZipper x
-mkZipper l =
-  case l of
-    x :: y :: zs -> LeftEnd (x, y) zs
-    _ -> Debug.crash "Tried to make a zipper from an empty list"
-
-zToList : ContextZipper x -> List x
-zToList cz =
-  case cz of
-    LeftEnd (f, r) rest -> f :: r :: rest
-    MidElem prev (l, f, r) rest -> prev ++ (l :: f :: r :: rest)
-    RightEnd prev (l, f) -> prev ++ [l, f]
-
-zNext : ContextZipper a -> ContextZipper a
-zNext cz =
-  case cz of
-    LeftEnd (f, r) (x::xs) ->
-      MidElem [] (f, r, x) xs
-
-    LeftEnd (f, r) [] ->
-      RightEnd [] (f, r)
-
-    MidElem xs (l, f, r) (y::ys) ->
-      MidElem (xs ++ [l]) (f, r, y) ys
-
-    MidElem xs (l, f, r) [] ->
-      RightEnd (xs ++ [l]) (f, r)
-
-    RightEnd xs (l, f) ->
-      Debug.crash "Tried to get zNext from RightEnd"
 
 -- OBJECTS
 type alias Part = { y : Float, vy : Float }
@@ -292,20 +239,20 @@ tension string =
                 (LeftEnd fr rest) as cell ->
                   forcesZp
                     (fs ++ [leftGetForce fr])
-                    (zNext cell)
+                    (ContextZipper.next cell)
                 (MidElem left lfr rest) as cell ->
                   forcesZp
                     (fs ++ [midGetForce lfr])
-                    (zNext cell)
+                    (ContextZipper.next cell)
                 RightEnd left lf ->
                   fs ++ [rightGetForce lf]
-        in List.map2 applyForce (forcesZp [] (mkZipper parts)) parts
+        in List.map2 applyForce (forcesZp [] (ContextZipper.mk parts)) parts
 
       newParts =
         case string.rightPulser of
-          Just pulser -> replaceLast {y = runP pulser string.t, vy = 0} string.parts
+          Just pulser -> ListUtil.replaceLast {y = runP pulser string.t, vy = 0} string.parts
           Nothing -> string.parts
-  in { string | parts = handleTensions (replaceHead leftPart newParts) }
+  in { string | parts = handleTensions (ListUtil.replaceHead leftPart newParts) }
 
 stepSpring : (Pulser, Maybe Pulser, Bool, Float) -> Spring -> Spring
 stepSpring (lp, mrp, flatten, dt) spr =
