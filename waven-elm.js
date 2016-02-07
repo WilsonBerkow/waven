@@ -6027,6 +6027,33 @@ Elm.Signal.make = function (_elm) {
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
 };
+Elm.Config = Elm.Config || {};
+Elm.Config.make = function (_elm) {
+   "use strict";
+   _elm.Config = _elm.Config || {};
+   if (_elm.Config.values) return _elm.Config.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var numParts = 120;
+   var springWidth = 450;
+   var partWidth = $Basics.toFloat(springWidth / numParts | 0);
+   var partRadius = partWidth / 2;
+   var framerate = 50;
+   var framelength = 1000 / framerate;
+   return _elm.Config.values = {_op: _op
+                               ,framerate: framerate
+                               ,framelength: framelength
+                               ,springWidth: springWidth
+                               ,numParts: numParts
+                               ,partWidth: partWidth
+                               ,partRadius: partRadius};
+};
 Elm.ContextZipper = Elm.ContextZipper || {};
 Elm.ContextZipper.make = function (_elm) {
    "use strict";
@@ -6087,8 +6114,8 @@ Elm.ContextZipper.make = function (_elm) {
                  {ctor: "_Tuple2",_0: _p1._1._1,_1: _p1._1._2});
               }
          default: return _U.crashCase("ContextZipper",
-           {start: {line: 23,column: 3},end: {line: 37,column: 53}},
-           _p1)("Tried to get zNext from RightEnd");}
+           {start: {line: 23,column: 3},end: {line: 37,column: 70}},
+           _p1)("Tried to get ContextZipper.next of RightEnd value");}
    };
    var LeftEnd = F2(function (a,b) {
       return {ctor: "LeftEnd",_0: a,_1: b};
@@ -6112,6 +6139,142 @@ Elm.ContextZipper.make = function (_elm) {
                                       ,mk: mk
                                       ,toList: toList
                                       ,next: next};
+};
+Elm.Pulser = Elm.Pulser || {};
+Elm.Pulser.make = function (_elm) {
+   "use strict";
+   _elm.Pulser = _elm.Pulser || {};
+   if (_elm.Pulser.values) return _elm.Pulser.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var cosWaveShifted = F4(function (amp,period,duration,start) {
+      var hFunction = function (t) {
+         return amp * $Basics.cos(t / period * 2 * $Basics.pi - $Basics.pi / 2);
+      };
+      return {start: start,duration: duration,hFunction: hFunction};
+   });
+   var cosWave = F4(function (amp,period,duration,start) {
+      var hFunction = function (t) {
+         return amp * $Basics.cos(t / period * 2 * $Basics.pi + $Basics.pi / 2);
+      };
+      return {start: start,duration: duration,hFunction: hFunction};
+   });
+   var cosPulserShifted = F4(function (numWavelengths,
+   duration,
+   amp,
+   start) {
+      var hFunction = function (t) {
+         return amp * $Basics.cos(t / duration * numWavelengths * 2 * $Basics.pi - $Basics.pi / 2);
+      };
+      return {start: start,duration: duration,hFunction: hFunction};
+   });
+   var cosPulser = F4(function (numWavelengths,
+   duration,
+   amp,
+   start) {
+      var hFunction = function (t) {
+         return amp * $Basics.cos(t / duration * numWavelengths * 2 * $Basics.pi + $Basics.pi / 2);
+      };
+      return {start: start,duration: duration,hFunction: hFunction};
+   });
+   var zeroPulser = {start: 0
+                    ,duration: 0
+                    ,hFunction: function (t) {
+                       return 0;
+                    }};
+   var run = F2(function (pulser,t) {
+      return _U.cmp(t,pulser.start) > -1 && _U.cmp(t,
+      pulser.start + pulser.duration) < 0 ? pulser.hFunction(t - pulser.start) : 0;
+   });
+   var mergePulsers = F2(function (p0,p1) {
+      var end = A2($Basics.max,
+      p0.start + p0.duration,
+      p1.start + p1.duration);
+      var start = A2($Basics.min,p0.start,p1.start);
+      var duration = end - start;
+      var p0RelStart = p0.start - start;
+      var p1RelStart = p1.start - start;
+      var hFunction = function (t) {
+         var fromP1 = A2(run,p1,start + t);
+         var fromP0 = A2(run,p0,start + t);
+         return fromP0 + fromP1;
+      };
+      return {start: start,duration: duration,hFunction: hFunction};
+   });
+   var Pulser = F3(function (a,b,c) {
+      return {start: a,duration: b,hFunction: c};
+   });
+   return _elm.Pulser.values = {_op: _op
+                               ,Pulser: Pulser
+                               ,run: run
+                               ,mergePulsers: mergePulsers
+                               ,zeroPulser: zeroPulser
+                               ,cosPulser: cosPulser
+                               ,cosPulserShifted: cosPulserShifted
+                               ,cosWave: cosWave
+                               ,cosWaveShifted: cosWaveShifted};
+};
+Elm.Demos = Elm.Demos || {};
+Elm.Demos.make = function (_elm) {
+   "use strict";
+   _elm.Demos = _elm.Demos || {};
+   if (_elm.Demos.values) return _elm.Demos.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Pulser = Elm.Pulser.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var fewPulsersReflectionB = A4($Pulser.cosWave,
+   -10,
+   400,
+   400,
+   2000);
+   var fewPulsersReflection = A4($Pulser.cosWave,10,400,400,200);
+   var dbl = A2($Pulser.mergePulsers,
+   fewPulsersReflection,
+   fewPulsersReflectionB);
+   var twoPulsersQuickEConserved = function () {
+      var b = A4($Pulser.cosPulser,0.5,600,20,2500);
+      var a = A4($Pulser.cosPulser,0.5,600,20,200);
+      return A2($Pulser.mergePulsers,a,b);
+   }();
+   var twoPulsersWideEConserved = function () {
+      var b = A4($Pulser.cosPulser,0.5,2000,20,2500);
+      var a = A4($Pulser.cosPulser,0.5,2000,20,200);
+      return A2($Pulser.mergePulsers,a,b);
+   }();
+   var pulseRight = twoPulsersWideEConserved;
+   var onePulserWideB = A4($Pulser.cosPulser,0.5,2000,-20,200);
+   var onePulserWide = A4($Pulser.cosPulser,0.5,2000,20,200);
+   var infinity = 1 / 0;
+   var oneWaveReflection = A4($Pulser.cosWave,10,400,infinity,200);
+   var oneWaveReflectionB = A4($Pulser.cosWaveShifted,
+   10,
+   400,
+   infinity,
+   200);
+   return _elm.Demos.values = {_op: _op
+                              ,infinity: infinity
+                              ,onePulserWide: onePulserWide
+                              ,onePulserWideB: onePulserWideB
+                              ,twoPulsersWideEConserved: twoPulsersWideEConserved
+                              ,twoPulsersQuickEConserved: twoPulsersQuickEConserved
+                              ,fewPulsersReflection: fewPulsersReflection
+                              ,fewPulsersReflectionB: fewPulsersReflectionB
+                              ,dbl: dbl
+                              ,oneWaveReflection: oneWaveReflection
+                              ,oneWaveReflectionB: oneWaveReflectionB
+                              ,pulseRight: pulseRight};
 };
 Elm.ListUtil = Elm.ListUtil || {};
 Elm.ListUtil.make = function (_elm) {
@@ -6327,6 +6490,286 @@ Elm.Time.make = function (_elm) {
                              ,delay: delay
                              ,since: since};
 };
+Elm.Part = Elm.Part || {};
+Elm.Part.make = function (_elm) {
+   "use strict";
+   _elm.Part = _elm.Part || {};
+   if (_elm.Part.values) return _elm.Part.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Config = Elm.Config.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var viewPart = F2(function (x,_p0) {
+      var _p1 = _p0;
+      return A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: x,_1: _p1.y},
+      A2($Graphics$Collage.filled,
+      $Color.black,
+      $Graphics$Collage.circle($Config.partRadius)));
+   });
+   var initialPart = {y: 0,vy: 0};
+   var inertia = function (_p2) {
+      var _p3 = _p2;
+      return _U.update(_p3,{y: _p3.y + _p3.vy});
+   };
+   var kE = function (_p4) {
+      var _p5 = _p4;
+      var _p6 = _p5.vy;
+      return 0.5 * _p6 * _p6;
+   };
+   var Part = F2(function (a,b) {    return {y: a,vy: b};});
+   return _elm.Part.values = {_op: _op
+                             ,Part: Part
+                             ,kE: kE
+                             ,inertia: inertia
+                             ,initialPart: initialPart
+                             ,viewPart: viewPart};
+};
+Elm.Spring = Elm.Spring || {};
+Elm.Spring.make = function (_elm) {
+   "use strict";
+   _elm.Spring = _elm.Spring || {};
+   if (_elm.Spring.values) return _elm.Spring.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Config = Elm.Config.make(_elm),
+   $ContextZipper = Elm.ContextZipper.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Demos = Elm.Demos.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $List = Elm.List.make(_elm),
+   $ListUtil = Elm.ListUtil.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Part = Elm.Part.make(_elm),
+   $Pulser = Elm.Pulser.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Text = Elm.Text.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var tension = function (string) {
+      var newParts = function () {
+         var _p0 = string.rightPulser;
+         if (_p0.ctor === "Just") {
+               return A2($ListUtil.replaceLast,
+               {y: A2($Pulser.run,_p0._0,string.t),vy: 0},
+               string.parts);
+            } else {
+               return string.parts;
+            }
+      }();
+      var applyForce = F2(function (f,_p1) {
+         var _p2 = _p1;
+         return {y: _p2.y,vy: _p2.vy + f};
+      });
+      var rightGetForce = function () {
+         var open = function (_p3) {
+            var _p4 = _p3;
+            return _p4._0.y - _p4._1.y;
+         };
+         var closed = function (_p5) {
+            var _p6 = _p5;
+            return 0 - _p6._1.y;
+         };
+         return string.rightEndClosed ? closed : open;
+      }();
+      var midGetForce = function (_p7) {
+         var _p8 = _p7;
+         var _p9 = _p8._1;
+         return string.k * (_p8._0.y - _p9.y) + string.k * (_p8._2.y - _p9.y);
+      };
+      var leftGetForce = function (_p10) {
+         var _p11 = _p10;
+         return 0 - _p11._0.y;
+      };
+      var handleTensions = function (parts) {
+         var forcesZp = F2(function (fs,pz) {
+            forcesZp: while (true) {
+               var _p12 = pz;
+               switch (_p12.ctor)
+               {case "LeftEnd": var _v7 = A2($Basics._op["++"],
+                    fs,
+                    _U.list([leftGetForce(_p12._0)])),
+                    _v8 = $ContextZipper.next(_p12);
+                    fs = _v7;
+                    pz = _v8;
+                    continue forcesZp;
+                  case "MidElem": var _v9 = A2($Basics._op["++"],
+                    fs,
+                    _U.list([midGetForce(_p12._1)])),
+                    _v10 = $ContextZipper.next(_p12);
+                    fs = _v9;
+                    pz = _v10;
+                    continue forcesZp;
+                  default: return A2($Basics._op["++"],
+                    fs,
+                    _U.list([rightGetForce(_p12._1)]));}
+            }
+         });
+         return A3($List.map2,
+         applyForce,
+         A2(forcesZp,_U.list([]),$ContextZipper.mk(parts)),
+         parts);
+      };
+      var rightPart = {y: A2($Pulser.run,string.leftPulser,string.t)
+                      ,vy: 0};
+      var leftPart = {y: A2($Pulser.run,string.leftPulser,string.t)
+                     ,vy: 0};
+      return _U.update(string,
+      {parts: handleTensions(A2($ListUtil.replaceHead,
+      leftPart,
+      newParts))});
+   };
+   var inertia = function (spr) {
+      return _U.update(spr,
+      {parts: A2($List.map,$Part.inertia,spr.parts)});
+   };
+   var pE = function (spr) {
+      var _p13 = spr.parts;
+      if (_p13.ctor === "::" && _p13._1.ctor === "::") {
+            var _p14 = _p13._1._0;
+            return 0.5 * Math.pow(_p14.y - _p13._0.y,2) + pE(_U.update(spr,
+            {parts: A2($List._op["::"],_p14,_p13._1._1)}));
+         } else {
+            return 0;
+         }
+   };
+   var viewPE = function (spring) {
+      var pe = $Basics.round(pE(spring));
+      var info = A2($Basics._op["++"],"PE = ",$Basics.toString(pe));
+      var peShown = $Graphics$Collage.toForm($Graphics$Element.rightAligned($Text.fromString(info)));
+      return A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: 100,_1: 120},
+      peShown);
+   };
+   var kE = function (_p15) {
+      var _p16 = _p15;
+      return $List.sum(A2($List.map,$Part.kE,_p16.parts));
+   };
+   var viewKE = function (spring) {
+      var ke = $Basics.round(kE(spring));
+      var info = A2($Basics._op["++"],"KE = ",$Basics.toString(ke));
+      var keShown = $Graphics$Collage.toForm($Graphics$Element.rightAligned($Text.fromString(info)));
+      return A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: 100,_1: 140},
+      keShown);
+   };
+   var viewME = function (spring) {
+      var me = $Basics.round(kE(spring) + pE(spring));
+      var info = A2($Basics._op["++"],"ME = ",$Basics.toString(me));
+      var meShown = $Graphics$Collage.toForm($Graphics$Element.rightAligned($Text.fromString(info)));
+      return A2($Graphics$Collage.move,
+      {ctor: "_Tuple2",_0: 100,_1: 100},
+      meShown);
+   };
+   var viewSpring = function (spr) {
+      var infos = _U.list([viewKE(spr),viewPE(spr),viewME(spr)]);
+      var rightmost = $Basics.toFloat($List.length(spr.parts)) / 2 * $Config.partWidth;
+      var renderWithX = F2(function (part,acc) {
+         var x = rightmost - $Config.partWidth * $Basics.toFloat($List.length(acc));
+         return A2($List._op["::"],A2($Part.viewPart,x,part),acc);
+      });
+      return $Graphics$Collage.group(A2($Basics._op["++"],
+      infos,
+      A3($List.foldr,renderWithX,_U.list([]),spr.parts)));
+   };
+   var initialParts = A2($List._op["::"],
+   {y: 0,vy: 5},
+   A2($List.repeat,$Config.numParts - 1,$Part.initialPart));
+   var initialSpring = {k: 1
+                       ,parts: initialParts
+                       ,leftPulser: $Demos.dbl
+                       ,rightPulser: $Maybe.Nothing
+                       ,rightEndClosed: true
+                       ,t: 0};
+   var stepSpring = F2(function (_p17,spr) {
+      var _p18 = _p17;
+      var _p19 = _p18._3;
+      if (_p18._2) return _U.update(initialSpring,{t: spr.t + _p19});
+      else {
+            var spr$ = inertia(tension(_U.update(spr,
+            {leftPulser: _p18._0,rightPulser: _p18._1})));
+            return _U.update(spr$,{t: spr.t + _p19});
+         }
+   });
+   var Spring = F6(function (a,b,c,d,e,f) {
+      return {k: a
+             ,parts: b
+             ,leftPulser: c
+             ,rightPulser: d
+             ,t: e
+             ,rightEndClosed: f};
+   });
+   return _elm.Spring.values = {_op: _op
+                               ,Spring: Spring
+                               ,initialParts: initialParts
+                               ,initialSpring: initialSpring
+                               ,kE: kE
+                               ,pE: pE
+                               ,inertia: inertia
+                               ,tension: tension
+                               ,stepSpring: stepSpring
+                               ,viewKE: viewKE
+                               ,viewPE: viewPE
+                               ,viewME: viewME
+                               ,viewSpring: viewSpring};
+};
+Elm.PulserSpec = Elm.PulserSpec || {};
+Elm.PulserSpec.make = function (_elm) {
+   "use strict";
+   _elm.PulserSpec = _elm.PulserSpec || {};
+   if (_elm.PulserSpec.values) return _elm.PulserSpec.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Pulser = Elm.Pulser.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var pulserFromSpec = function (ps) {
+      return {start: ps.start + ps.timeZero + 100
+             ,duration: ps.duration
+             ,hFunction: function (t) {
+                return ps.amplitude * $Basics.cos(2 * $Basics.pi * t / ps.period - $Basics.pi / 2 + ps.phaseShift);
+             }};
+   };
+   var pulserFromSpecs = function (pss) {
+      var _p0 = pss;
+      if (_p0.ctor === "[]") {
+            return $Pulser.zeroPulser;
+         } else {
+            if (_p0._1.ctor === "[]") {
+                  return pulserFromSpec(_p0._0);
+               } else {
+                  return A2($Pulser.mergePulsers,
+                  pulserFromSpec(_p0._0),
+                  pulserFromSpecs(_p0._1));
+               }
+         }
+   };
+   var PulserSpec = F6(function (a,b,c,d,e,f) {
+      return {start: a
+             ,duration: b
+             ,amplitude: c
+             ,phaseShift: d
+             ,period: e
+             ,timeZero: f};
+   });
+   return _elm.PulserSpec.values = {_op: _op
+                                   ,PulserSpec: PulserSpec
+                                   ,pulserFromSpec: pulserFromSpec
+                                   ,pulserFromSpecs: pulserFromSpecs};
+};
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
@@ -6335,16 +6778,17 @@ Elm.Main.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
-   $ContextZipper = Elm.ContextZipper.make(_elm),
+   $Config = Elm.Config.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
-   $ListUtil = Elm.ListUtil.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Pulser = Elm.Pulser.make(_elm),
+   $PulserSpec = Elm.PulserSpec.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Text = Elm.Text.make(_elm),
+   $Spring = Elm.Spring.make(_elm),
    $Time = Elm.Time.make(_elm);
    var _op = {};
    var placeSpring = function (parts) {
@@ -6359,291 +6803,6 @@ Elm.Main.make = function (_elm) {
               $Graphics$Collage.solid($Color.black),
               A2($Graphics$Collage.rect,w,h))]));
    };
-   var initialPart = {y: 0,vy: 0};
-   var cosWaveB = F4(function (amp,period,duration,start) {
-      var hFunction = function (t) {
-         return amp * $Basics.cos(t / period * 2 * $Basics.pi - $Basics.pi / 2);
-      };
-      return {start: start,duration: duration,hFunction: hFunction};
-   });
-   var cosWave = F4(function (amp,period,duration,start) {
-      var hFunction = function (t) {
-         return amp * $Basics.cos(t / period * 2 * $Basics.pi + $Basics.pi / 2);
-      };
-      return {start: start,duration: duration,hFunction: hFunction};
-   });
-   var demo_fewPulsersReflection = A4(cosWave,10,400,400,200);
-   var demo_fewPulsersReflectionB = A4(cosWave,-10,400,400,2000);
-   var infinity = 1 / 0;
-   var demo_oneWaveReflection = A4(cosWave,10,400,infinity,200);
-   var demo_oneWaveReflectionB = A4(cosWaveB,10,400,infinity,200);
-   var cosPulserB = F4(function (numWavelengths,
-   duration,
-   amp,
-   start) {
-      var hFunction = function (t) {
-         return amp * $Basics.cos(t / duration * numWavelengths * 2 * $Basics.pi - $Basics.pi / 2);
-      };
-      return {start: start,duration: duration,hFunction: hFunction};
-   });
-   var cosPulser = F4(function (numWavelengths,
-   duration,
-   amp,
-   start) {
-      var hFunction = function (t) {
-         return amp * $Basics.cos(t / duration * numWavelengths * 2 * $Basics.pi + $Basics.pi / 2);
-      };
-      return {start: start,duration: duration,hFunction: hFunction};
-   });
-   var demo_onePulserWide = A4(cosPulser,0.5,2000,20,200);
-   var demo_onePulserWideB = A4(cosPulser,0.5,2000,-20,200);
-   var zeroPulser = {start: 0
-                    ,duration: 0
-                    ,hFunction: function (t) {
-                       return 0;
-                    }};
-   var pulserFromSpec = function (ps) {
-      return {start: ps.start + ps.timeZero + 100
-             ,duration: ps.duration
-             ,hFunction: function (t) {
-                return ps.amplitude * $Basics.cos(2 * $Basics.pi * t / ps.period - $Basics.pi / 2 + ps.phaseShift);
-             }};
-   };
-   var PulserSpec = F6(function (a,b,c,d,e,f) {
-      return {start: a
-             ,duration: b
-             ,amplitude: c
-             ,phaseShift: d
-             ,period: e
-             ,timeZero: f};
-   });
-   var runP = F2(function (pulser,t) {
-      return _U.cmp(t,pulser.start) > -1 && _U.cmp(t,
-      pulser.start + pulser.duration) < 0 ? pulser.hFunction(t - pulser.start) : 0;
-   });
-   var mergePulsers = F2(function (p0,p1) {
-      var end = A2($Basics.max,
-      p0.start + p0.duration,
-      p1.start + p1.duration);
-      var start = A2($Basics.min,p0.start,p1.start);
-      var duration = end - start;
-      var p0RelStart = p0.start - start;
-      var p1RelStart = p1.start - start;
-      var hFunction = function (t) {
-         var fromP1 = A2(runP,p1,start + t);
-         var fromP0 = A2(runP,p0,start + t);
-         return fromP0 + fromP1;
-      };
-      return {start: start,duration: duration,hFunction: hFunction};
-   });
-   var pulserFromSpecs = function (pss) {
-      var _p1 = pss;
-      if (_p1.ctor === "[]") {
-            return zeroPulser;
-         } else {
-            if (_p1._1.ctor === "[]") {
-                  return pulserFromSpec(_p1._0);
-               } else {
-                  return A2(mergePulsers,
-                  pulserFromSpec(_p1._0),
-                  pulserFromSpecs(_p1._1));
-               }
-         }
-   };
-   var demo_twoPulsersWideEConserved = function () {
-      var b = A4(cosPulser,0.5,2000,20,2500);
-      var a = A4(cosPulser,0.5,2000,20,200);
-      return A2(mergePulsers,a,b);
-   }();
-   var demo_pulseRight = demo_twoPulsersWideEConserved;
-   var demo_twoPulsersQuickEConserved = function () {
-      var b = A4(cosPulser,0.5,600,20,2500);
-      var a = A4(cosPulser,0.5,600,20,200);
-      return A2(mergePulsers,a,b);
-   }();
-   var demo = demo_twoPulsersQuickEConserved;
-   var demo_dbl = A2(mergePulsers,
-   demo_fewPulsersReflection,
-   demo_fewPulsersReflectionB);
-   var tension = function (string) {
-      var newParts = function () {
-         var _p2 = string.rightPulser;
-         if (_p2.ctor === "Just") {
-               return A2($ListUtil.replaceLast,
-               {y: A2(runP,_p2._0,string.t),vy: 0},
-               string.parts);
-            } else {
-               return string.parts;
-            }
-      }();
-      var applyForce = F2(function (f,_p3) {
-         var _p4 = _p3;
-         return {y: _p4.y,vy: _p4.vy + f};
-      });
-      var rightGetForce = function () {
-         var open = function (_p5) {
-            var _p6 = _p5;
-            return _p6._0.y - _p6._1.y;
-         };
-         var closed = function (_p7) {
-            var _p8 = _p7;
-            return 0 - _p8._1.y;
-         };
-         return string.rightEndClosed ? closed : open;
-      }();
-      var midGetForce = function (_p9) {
-         var _p10 = _p9;
-         var _p11 = _p10._1;
-         return string.k * (_p10._0.y - _p11.y) + string.k * (_p10._2.y - _p11.y);
-      };
-      var leftGetForce = function (_p12) {
-         var _p13 = _p12;
-         return 0 - _p13._0.y;
-      };
-      var handleTensions = function (parts) {
-         var forcesZp = F2(function (fs,pz) {
-            forcesZp: while (true) {
-               var _p14 = pz;
-               switch (_p14.ctor)
-               {case "LeftEnd": var _v8 = A2($Basics._op["++"],
-                    fs,
-                    _U.list([leftGetForce(_p14._0)])),
-                    _v9 = $ContextZipper.next(_p14);
-                    fs = _v8;
-                    pz = _v9;
-                    continue forcesZp;
-                  case "MidElem": var _v10 = A2($Basics._op["++"],
-                    fs,
-                    _U.list([midGetForce(_p14._1)])),
-                    _v11 = $ContextZipper.next(_p14);
-                    fs = _v10;
-                    pz = _v11;
-                    continue forcesZp;
-                  default: return A2($Basics._op["++"],
-                    fs,
-                    _U.list([rightGetForce(_p14._1)]));}
-            }
-         });
-         return A3($List.map2,
-         applyForce,
-         A2(forcesZp,_U.list([]),$ContextZipper.mk(parts)),
-         parts);
-      };
-      var rightPart = {y: A2(runP,string.leftPulser,string.t),vy: 0};
-      var leftPart = {y: A2(runP,string.leftPulser,string.t),vy: 0};
-      return _U.update(string,
-      {parts: handleTensions(A2($ListUtil.replaceHead,
-      leftPart,
-      newParts))});
-   };
-   var Pulser = F3(function (a,b,c) {
-      return {start: a,duration: b,hFunction: c};
-   });
-   var inertiaOne = function (_p15) {
-      var _p16 = _p15;
-      return _U.update(_p16,{y: _p16.y + _p16.vy});
-   };
-   var inertia = function (spr) {
-      return _U.update(spr,
-      {parts: A2($List.map,inertiaOne,spr.parts)});
-   };
-   var totalPE = function (spr) {
-      var _p17 = spr.parts;
-      if (_p17.ctor === "::" && _p17._1.ctor === "::") {
-            var _p18 = _p17._1._0;
-            return 0.5 * Math.pow(_p18.y - _p17._0.y,
-            2) + totalPE(_U.update(spr,
-            {parts: A2($List._op["::"],_p18,_p17._1._1)}));
-         } else {
-            return 0;
-         }
-   };
-   var viewPE = function (spring) {
-      var pe = $Basics.round(totalPE(spring));
-      var info = A2($Basics._op["++"],"PE = ",$Basics.toString(pe));
-      var peShown = $Graphics$Collage.toForm($Graphics$Element.rightAligned($Text.fromString(info)));
-      return A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 100,_1: 120},
-      peShown);
-   };
-   var kE = function (_p19) {
-      var _p20 = _p19;
-      var _p21 = _p20.vy;
-      return 0.5 * _p21 * _p21;
-   };
-   var totalKE = function (_p22) {
-      var _p23 = _p22;
-      return $List.sum(A2($List.map,kE,_p23.parts));
-   };
-   var viewKE = function (spring) {
-      var ke = $Basics.round(totalKE(spring));
-      var info = A2($Basics._op["++"],"KE = ",$Basics.toString(ke));
-      var keShown = $Graphics$Collage.toForm($Graphics$Element.rightAligned($Text.fromString(info)));
-      return A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 100,_1: 140},
-      keShown);
-   };
-   var viewME = function (spring) {
-      var me = $Basics.round(totalKE(spring) + totalPE(spring));
-      var info = A2($Basics._op["++"],"ME = ",$Basics.toString(me));
-      var meShown = $Graphics$Collage.toForm($Graphics$Element.rightAligned($Text.fromString(info)));
-      return A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: 100,_1: 100},
-      meShown);
-   };
-   var Spring = F6(function (a,b,c,d,e,f) {
-      return {k: a
-             ,parts: b
-             ,leftPulser: c
-             ,rightPulser: d
-             ,t: e
-             ,rightEndClosed: f};
-   });
-   var Part = F2(function (a,b) {    return {y: a,vy: b};});
-   var numParts = 120;
-   var initialParts = A2($List._op["::"],
-   {y: 0,vy: 5},
-   A2($List.repeat,numParts - 1,initialPart));
-   var initialSpring = {k: 1
-                       ,parts: initialParts
-                       ,leftPulser: demo_dbl
-                       ,rightPulser: $Maybe.Nothing
-                       ,rightEndClosed: true
-                       ,t: 0};
-   var stepSpring = F2(function (_p24,spr) {
-      var _p25 = _p24;
-      var _p26 = _p25._3;
-      if (_p25._2) return _U.update(initialSpring,{t: spr.t + _p26});
-      else {
-            var spr$ = inertia(tension(_U.update(spr,
-            {leftPulser: _p25._0,rightPulser: _p25._1})));
-            return _U.update(spr$,{t: spr.t + _p26});
-         }
-   });
-   var stringWidth = 450;
-   var partWidth = $Basics.toFloat(stringWidth / numParts | 0);
-   var partRadius = partWidth / 2;
-   var viewPart = F2(function (x,_p27) {
-      var _p28 = _p27;
-      return A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: x,_1: _p28.y},
-      A2($Graphics$Collage.filled,
-      $Color.black,
-      $Graphics$Collage.circle(partRadius)));
-   });
-   var viewString = function (spr) {
-      var infos = _U.list([viewKE(spr),viewPE(spr),viewME(spr)]);
-      var rightmost = $Basics.toFloat($List.length(spr.parts)) / 2 * partWidth;
-      var renderWithX = F2(function (part,acc) {
-         var x = rightmost - partWidth * $Basics.toFloat($List.length(acc));
-         return A2($List._op["::"],A2(viewPart,x,part),acc);
-      });
-      return $Graphics$Collage.group(A2($Basics._op["++"],
-      infos,
-      A3($List.foldr,renderWithX,_U.list([]),spr.parts)));
-   };
-   var framerate = 50;
-   var framelength = 1000 / framerate;
    var flat = Elm.Native.Port.make(_elm).inboundSignal("flat",
    "Bool",
    function (v) {
@@ -6651,7 +6810,7 @@ Elm.Main.make = function (_elm) {
       v);
    });
    var rightPulserSpecs = Elm.Native.Port.make(_elm).inboundSignal("rightPulserSpecs",
-   "Maybe.Maybe\n    (List Main.PulserSpec)",
+   "Maybe.Maybe\n    (List PulserSpec.PulserSpec)",
    function (v) {
       return v === null ? Elm.Maybe.make(_elm).Nothing : Elm.Maybe.make(_elm).Just(typeof v === "object" && v instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.map(function (v) {
          return typeof v === "object" && "start" in v && "duration" in v && "amplitude" in v && "phaseShift" in v && "period" in v && "timeZero" in v ? {_: {}
@@ -6671,10 +6830,10 @@ Elm.Main.make = function (_elm) {
       })) : _U.badPort("an array",v));
    });
    var rightPulser = A2($Signal.map,
-   $Maybe.map(pulserFromSpecs),
+   $Maybe.map($PulserSpec.pulserFromSpecs),
    rightPulserSpecs);
    var leftPulserSpecs = Elm.Native.Port.make(_elm).inboundSignal("leftPulserSpecs",
-   "List Main.PulserSpec",
+   "List PulserSpec.PulserSpec",
    function (v) {
       return typeof v === "object" && v instanceof Array ? Elm.Native.List.make(_elm).fromArray(v.map(function (v) {
          return typeof v === "object" && "start" in v && "duration" in v && "amplitude" in v && "phaseShift" in v && "period" in v && "timeZero" in v ? {_: {}
@@ -6694,15 +6853,15 @@ Elm.Main.make = function (_elm) {
       })) : _U.badPort("an array",v);
    });
    var leftPulser = A2($Signal.map,
-   pulserFromSpecs,
+   $PulserSpec.pulserFromSpecs,
    leftPulserSpecs);
    var main = A2($Signal.map,
-   function (_p29) {
-      return placeSpring(viewString(_p29));
+   function (_p1) {
+      return placeSpring($Spring.viewSpring(_p1));
    },
    A3($Signal.foldp,
-   stepSpring,
-   initialSpring,
+   $Spring.stepSpring,
+   $Spring.initialSpring,
    A5($Signal.map4,
    F4(function (v0,v1,v2,v3) {
       return {ctor: "_Tuple4",_0: v0,_1: v1,_2: v2,_3: v3};
@@ -6710,56 +6869,10 @@ Elm.Main.make = function (_elm) {
    leftPulser,
    rightPulser,
    flat,
-   $Time.fps(framerate))));
+   $Time.fps($Config.framerate))));
    return _elm.Main.values = {_op: _op
                              ,leftPulser: leftPulser
                              ,rightPulser: rightPulser
-                             ,framerate: framerate
-                             ,framelength: framelength
-                             ,stringWidth: stringWidth
-                             ,numParts: numParts
-                             ,partWidth: partWidth
-                             ,partRadius: partRadius
-                             ,Part: Part
-                             ,Spring: Spring
-                             ,kE: kE
-                             ,totalKE: totalKE
-                             ,totalPE: totalPE
-                             ,inertiaOne: inertiaOne
-                             ,inertia: inertia
-                             ,Pulser: Pulser
-                             ,runP: runP
-                             ,PulserSpec: PulserSpec
-                             ,pulserFromSpec: pulserFromSpec
-                             ,zeroPulser: zeroPulser
-                             ,pulserFromSpecs: pulserFromSpecs
-                             ,mergePulsers: mergePulsers
-                             ,cosPulser: cosPulser
-                             ,cosPulserB: cosPulserB
-                             ,infinity: infinity
-                             ,cosWave: cosWave
-                             ,cosWaveB: cosWaveB
-                             ,demo_onePulserWide: demo_onePulserWide
-                             ,demo_onePulserWideB: demo_onePulserWideB
-                             ,demo_twoPulsersWideEConserved: demo_twoPulsersWideEConserved
-                             ,demo_twoPulsersQuickEConserved: demo_twoPulsersQuickEConserved
-                             ,demo_fewPulsersReflection: demo_fewPulsersReflection
-                             ,demo_fewPulsersReflectionB: demo_fewPulsersReflectionB
-                             ,demo_dbl: demo_dbl
-                             ,demo_oneWaveReflection: demo_oneWaveReflection
-                             ,demo_oneWaveReflectionB: demo_oneWaveReflectionB
-                             ,demo_pulseRight: demo_pulseRight
-                             ,demo: demo
-                             ,initialPart: initialPart
-                             ,initialParts: initialParts
-                             ,initialSpring: initialSpring
-                             ,tension: tension
-                             ,stepSpring: stepSpring
-                             ,viewPart: viewPart
-                             ,viewKE: viewKE
-                             ,viewPE: viewPE
-                             ,viewME: viewME
-                             ,viewString: viewString
                              ,placeSpring: placeSpring
                              ,main: main};
 };
